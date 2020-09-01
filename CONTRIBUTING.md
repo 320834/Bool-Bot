@@ -7,7 +7,7 @@
 
 # Pull Requests
 
-Do not push the master branch if you are working on a feature
+Do not push to master branch if you are working on a feature
 
 Always create a branch and submit a pull request to merge it to master
 
@@ -16,7 +16,9 @@ The convention we will set for branch names will be
 <em>your name/type of branch/short description</em>
 
 Your Name: Literally your name
+
 Type of Branch: What is this branch about. Is it a feature, bug fix, documentation etc
+
 Description: The description of the branch
 
 Ex. If I (Justin) were to implement a feature such that it sends a photo every one minute, the name would be...
