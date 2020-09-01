@@ -8,8 +8,9 @@ First check out the documentation here: https://discordpy.readthedocs.io/en/late
 
 For linux/mac users (in the command line):
 
-1. python3 -m pip install -U discord.py 
-(Should be installed globally)
+1. pip3 install -r requirements.txt
+(Installs everything in requirements.txt, feel free to add it if you find other packages you want to use)
+3. touch .env (Create .env in your root directory. Check the chat to get discord api key.)
 2. python3 index.py (To start the app)
 
 # Contributing

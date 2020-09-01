@@ -1,4 +1,6 @@
 import discord
+import os
+from settings import DISCORD_API_KEY
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -8,4 +10,4 @@ class MyClient(discord.Client):
         print('Message from {0.author}: {0.content}'.format(message))
 
 client = MyClient()
-client.run('NzUwNDYzMDY5NDIzMDA5ODk0.X065Mg.tolzIUsbrGnPZwQbCBXO3sHwC5I')
+client.run(DISCORD_API_KEY)
