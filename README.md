@@ -11,7 +11,7 @@ For linux/mac users (in the command line):
 1. pip3 install -r requirements.txt
 (Installs everything in requirements.txt, feel free to add it if you find other packages you want to use)
 3. touch .env (Create .env in your root directory. Check the chat to get discord api key.)
-2. python3 index.py (To start the app)
+2. python3 src/index.py (To start the app)
 
 # Contributing
 
