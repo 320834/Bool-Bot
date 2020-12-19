@@ -3,8 +3,6 @@ from discord.ext import commands
 import os 
 from settings import DISCORD_API_KEY
 
-print(DISCORD_API_KEY)
-
 # Features
 import example_feat
 
@@ -37,19 +35,37 @@ async def on_message(message):
     result = await bot.process_commands(message)
 
     # Ensure no feedback loop.
-    # if message.author.name != bot.user.name:
-        # await example_feature.send_mess(message)
-    
+    if message.author.name != bot.user.name and message.content[0] != "!":
+
+        await example_feat.send_mess(message)
+
+@bot.event
+async def on_command_error(context, exception):
+    print(exception)
+    await context.send("An error has occurred with your request. {0}".format(exception))
+
 
 # ================================================================================
 # Commands
 
-@bot.command(name="test")
+@bot.command(name="say")
 async def say(ctx, arg):
     """
-    Test bot command. Type !test "Message here"
+    Test bot command. Type !say "Message here"
     """
+
     await ctx.send(arg)
 
+@bot.command(name="users")
+async def users(ctx):
+    """
+    Bot command get list of users. Type !users
+    """
+
+    usernames = map(lambda user : user.name, bot.users)
+    usernames = list(usernames)
+
+    await ctx.send(usernames)
+    
 def main():
     bot.run(DISCORD_API_KEY)

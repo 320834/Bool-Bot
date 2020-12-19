@@ -18,7 +18,10 @@ For linux/mac users (in the command line):
 
 Type "pytest" to run tests
 
-All tests are located in eric_bot/tests directory
+All tests are located in eric_bot/tests directory.
+
+**NOTE**
+When making a new test file, make sure to put test in the name of the file or else it won't work.
 
 # Contributing
 
