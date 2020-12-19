@@ -3,8 +3,10 @@ from discord.ext import commands
 import os 
 from settings import DISCORD_API_KEY
 
+print(DISCORD_API_KEY)
+
 # Features
-import example_feature
+import example_feat
 
 # Use bot commands extension. 
 # Tutorial: https://discordpy.readthedocs.io/en/latest/ext/commands/index.html
@@ -35,8 +37,8 @@ async def on_message(message):
     result = await bot.process_commands(message)
 
     # Ensure no feedback loop.
-    if message.author.name != bot.user.name:
-        await example_feature.send_mess(message)
+    # if message.author.name != bot.user.name:
+        # await example_feature.send_mess(message)
     
 
 # ================================================================================
@@ -49,5 +51,5 @@ async def say(ctx, arg):
     """
     await ctx.send(arg)
 
-
-bot.run(DISCORD_API_KEY)
+def main():
+    bot.run(DISCORD_API_KEY)
