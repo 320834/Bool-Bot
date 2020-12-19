@@ -41,7 +41,9 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(context, exception):
-    print(exception)
+    """
+    Coroutine event. Invoked when error has occurred with processing a command. 
+    """
     await context.send("An error has occurred with your request. {0}".format(exception))
 
 
@@ -66,6 +68,9 @@ async def users(ctx):
     usernames = list(usernames)
 
     await ctx.send(usernames)
-    
+
 def main():
+    """
+    The entry point for the bot. Called in __main__.py
+    """
     bot.run(DISCORD_API_KEY)

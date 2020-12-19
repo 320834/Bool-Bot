@@ -20,6 +20,10 @@ Type "pytest" to run tests
 
 All tests are located in eric_bot/tests directory.
 
+[Pytest](https://docs.pytest.org/en/stable/)
+[Pytest-mocker](https://pypi.org/project/pytest-mock/)
+[Pytest-mocker-tutorial](https://changhsinlee.com/pytest-mock/)
+
 **NOTE**
 When making a new test file, make sure to put test in the name of the file or else it won't work.
 

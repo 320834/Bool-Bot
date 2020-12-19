@@ -9,4 +9,7 @@ async def send_mess(message):
     return message.content
 
 def add(value):
+    """
+    A simple sync function. Used to show demonstrate how tests are written
+    """
     return 4 + value
