@@ -11,8 +11,8 @@ For linux/mac users (in the command line):
 1. pip3 install -r requirements.txt
 (Installs everything in requirements.txt, feel free to add it if you find other packages you want to use)
 2. touch eric_bot/.env (Create .env in eric_bot directory. Check the chat to get discord api key.)
-3. pip install -e . (Loads the eric_bot as its own library. Need to do this for tests)
-4. python3 eric_bot (To start the app)
+3. pip3 install -e . (Loads the eric_bot as its own library. Need to do this for tests)
+4. python3 bool_bot (To start the app)
 
 # Tests
 

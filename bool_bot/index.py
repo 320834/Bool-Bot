@@ -5,6 +5,7 @@ from settings import DISCORD_API_KEY
 
 # Features
 import example_feat
+import google_drive_feat
 
 # Use bot commands extension. 
 # Tutorial: https://discordpy.readthedocs.io/en/latest/ext/commands/index.html
@@ -36,8 +37,9 @@ async def on_message(message):
 
     # Ensure no feedback loop.
     if message.author.name != bot.user.name and message.content[0] != "!":
-
-        await example_feat.send_mess(message)
+        #Uncomment next line to test on_message
+        pass
+        # await example_feat.send_mess(message)
 
 @bot.event
 async def on_command_error(context, exception):
@@ -68,6 +70,18 @@ async def users(ctx):
     usernames = list(usernames)
 
     await ctx.send(usernames)
+
+@bot.command(name="files")
+async def files(ctx):
+    files = google_drive_feature.get_recent_files()
+
+    # print(files)
+
+    output = "\n"
+    for file in files:
+        output += (file["name"] + "\n")
+
+    await ctx.send(output)
 
 def main():
     """

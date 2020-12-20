@@ -1,6 +1,6 @@
 import pytest
 
-from eric_bot import example_feat
+from bool_bot import example_feat
 
 # Async Tests. Use for testing code as most of it will be coroutines
 @pytest.mark.asyncio
