@@ -10,15 +10,19 @@ For linux/mac users (in the command line):
 
 1. pip3 install -r requirements.txt
 (Installs everything in requirements.txt, feel free to add it if you find other packages you want to use)
-2. touch eric_bot/.env (Create .env in eric_bot directory. Check the chat to get discord api key.)
-3. pip3 install -e . (Loads the eric_bot as its own library. Need to do this for tests)
-4. python3 bool_bot (To start the app)
+2. touch .env 
+3. touch google-drive-credentials.json
+(For steps 2-3, ask Justin or go onto the test server to find the files)
+4. pip3 install -e . 
+(Loads the bool_bot as its own library. Need to do this for tests)
+5. python3 bool_bot 
+(To start the app)
 
 # Tests
 
 Type "pytest" to run tests
 
-All tests are located in eric_bot/tests directory.
+All tests are located in bool_bot/tests directory.
 
 [Pytest](https://docs.pytest.org/en/stable/)
 [Pytest-mocker](https://pypi.org/project/pytest-mock/)
