@@ -1,6 +1,6 @@
-# Eric-Bot
+# Bool Bot
 
-A discord eric bot. It will be eric's worst nightmare. 
+A discord bot for server. 
 
 # Installation
 
