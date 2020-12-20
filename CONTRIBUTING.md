@@ -5,6 +5,15 @@
 3. No sexism
 4. Don't be dick
 
+# Standards
+
+Description of each file
+
+index.py - The main driver of the program. Always run this
+settings.py - Configuration file. Used for discord api key
+
+example_feature - A example of feature file. Defined so it serves as a template for other features
+
 # Pull Requests
 
 Do not push to master branch if you are working on a feature
