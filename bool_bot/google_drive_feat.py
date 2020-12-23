@@ -4,12 +4,25 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from googleapiclient.http import MediaIoBaseDownload
+import io
+import index
+
+# Documentation Links
+# In-depth documentation:
+# https://developers.google.com/resources/api-libraries/documentation/drive/v3/python/latest/drive_v3.files.html
+# Tutorial Documentation:
+# https://developers.google.com/drive/api/v3/about-files
+
+# Temp Dir
+temp_dir = "./bool_bot/files/"
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
 def authenticate():
-    """Shows basic usage of the Drive v3 API.
+    """
+    Shows basic usage of the Drive v3 API.
     Prints the names and ids of the first 10 files the user has access to.
     """
     creds = None
@@ -34,7 +47,11 @@ def authenticate():
     return creds
 
 def get_recent_files():
+    """
+    Returns the 10 most recent files
 
+    return items : Array<Object(id, name)> - An array of objects/dicts with id and name attributes 
+    """
     creds = authenticate()
 
     service = build('drive', 'v3', credentials=creds)
@@ -45,3 +62,50 @@ def get_recent_files():
     items = results.get('files', [])
 
     return items
+
+def get_file_id(filename):
+    """
+    Get file id from the name
+
+    filename : String - The file name
+
+    return file_id : String - The file id from google drive  
+    """
+
+    creds = authenticate()
+    service = build('drive', 'v3', credentials=creds)
+
+    page_token = None
+    response = service.files().list(q="name = '{0}'".format(filename), 
+                                    pageSize=1,
+                                    spaces="drive", 
+                                    fields='nextPageToken, files(id, name, webViewLink)',
+                                    pageToken=page_token).execute()
+
+    return response["files"]
+
+def download_photo(fileId, fileName):
+    """
+    Download the photo to local directory.
+
+    fileId : String - The file id 
+    fileName : String - The file name
+    """
+    creds = authenticate()
+    service = build('drive', 'v3', credentials=creds)
+
+    request = service.files().get_media(fileId=fileId)
+
+    # Downloads the photo to local storage. 
+    fh = io.FileIO(temp_dir + fileName, mode='wb')
+    downloader = MediaIoBaseDownload(fd=fh, request=request)
+
+
+    done = False
+    while done is False:
+        status,done = downloader.next_chunk()
+        # print("Download %d%%." % int(status.progress() * 100))
+    
+    fh.close()
+
+    return fileName
