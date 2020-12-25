@@ -142,6 +142,8 @@ async def photosearch(ctx, argone):
     # Push request to photo requests
     photo_requests[ctx.author.id] = found_files
 
+    print(photo_requests)
+
 @bot.command(name="listrequests")
 async def list_requests(ctx):
     print(photo_requests)
@@ -178,6 +180,13 @@ async def send_photo(ctx, file_id, file_name, description):
 async def process_search_request(message):
     user_id = message.author.id
     res = message.content
+
+    
+
+    try:
+        photo_requests[user_id]
+    except KeyError:
+        return
 
     if bool(photo_requests) and photo_requests[user_id] != None and message.content == 'c':
         del photo_requests[user_id]
