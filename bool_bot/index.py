@@ -17,6 +17,11 @@ import google_drive_feat
 # Context Documentation: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Context
 
 # ================================================================================
+# Global vars
+
+photo_requests = {}
+
+# ================================================================================
 # Temp directory
 temp_dir = "./bool_bot/files/"
 
@@ -47,7 +52,7 @@ async def on_message(message):
     # Ensure no feedback loop.
     if message.author.name != bot.user.name and message.content[0] != "!":
         #Uncomment next line to test on_message
-        pass
+        await process_search_request(message)
         # await example_feat.send_mess(message)
 
 @bot.event
@@ -60,25 +65,6 @@ async def on_command_error(context, exception):
 
 # ================================================================================
 # Commands
-
-@bot.command(name="say")
-async def say(ctx, arg):
-    """
-    Test bot command. Type !say "Message here"
-    """
-
-    await ctx.send(arg)
-
-@bot.command(name="users")
-async def users(ctx):
-    """
-    Bot command get list of users. Type !users
-    """
-
-    usernames = map(lambda user : user.name, bot.users)
-    usernames = list(usernames)
-
-    await ctx.send(usernames)
 
 @bot.command(name="files")
 async def files(ctx):
@@ -137,6 +123,28 @@ async def photo(ctx, photo_name):
 
     await send_photo(ctx, file_id, file_name, web_link)
     
+@bot.command(name="photosearch")
+async def photosearch(ctx, argone):
+    found_files = google_drive_feat.get_files_search(argone)
+
+    description = ""
+
+    for i in range(0 , len(found_files)):
+        file = found_files[i]
+
+        description += "{0}. {1}\n".format(i, file['name'])
+
+    embed = discord.Embed(title="Select an option. Enter a number from list. Enter c to cancel")
+    embed.description = description
+
+    await ctx.send(embed=embed)
+    
+    # Push request to photo requests
+    photo_requests[ctx.author.id] = found_files
+
+@bot.command(name="listrequests")
+async def list_requests(ctx):
+    print(photo_requests)
 
 # ================================================================================
 # Helper functions
@@ -166,6 +174,37 @@ async def send_photo(ctx, file_id, file_name, description):
     buffered.close()
 
     return
+
+async def process_search_request(message):
+    user_id = message.author.id
+    res = message.content
+
+    if bool(photo_requests) and photo_requests[user_id] != None and message.content == 'c':
+        del photo_requests[user_id]
+
+        return await message.channel.send("Cancelling Request")
+
+    if bool(photo_requests) and photo_requests[user_id] != None:
+
+        index = None
+        try:
+            index = int(res)
+        except ValueError:
+            return await message.channel.send("Please enter a number")
+
+        try:
+            file_id = photo_requests[user_id][index]["id"]
+            file_name = photo_requests[user_id][index]["name"]
+            description = photo_requests[user_id][index]["webViewLink"]
+
+            await send_photo(message.channel, file_id, file_name, description)
+        except IndexError:
+            return await message.channel.send("Please enter a number in range of request")
+
+        # Remove user key from photo requests
+        del photo_requests[user_id]
+
+        return
 
 def main():
     """
