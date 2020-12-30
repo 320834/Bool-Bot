@@ -3,6 +3,7 @@ from discord.ext import commands
 import os 
 from settings import DISCORD_API_KEY
 import io
+import random
 
 # Features
 import example_feat
@@ -109,6 +110,10 @@ async def photo(ctx, search_option, query):
         # Find and return photo with google id
         await photo_id(ctx, query)
         pass
+    elif search_option == "r" or search_option == "random":
+        # Return random photo from recent files list
+        await photo_random(ctx, query)
+        pass
     
 @bot.command(name="listrequests")
 async def list_requests(ctx):
@@ -116,6 +121,16 @@ async def list_requests(ctx):
 
 # ================================================================================
 # Helper functions
+
+async def photo_random(ctx, query):
+    
+    #files = google_drive_feat.get_recent_files()
+    #random_file_id = files[0]["id"]
+
+    found_files = google_drive_feat.get_files_search(query)
+    random_file_id = found_files[random.randint(0, len(found_files))]["id"]
+
+    await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "random file")
 
 async def photo_id(ctx, file_id):
     """
