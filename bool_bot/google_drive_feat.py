@@ -96,6 +96,8 @@ def download_photo(fileId, fileName):
 
     request = service.files().get_media(fileId=fileId)
 
+    # print(request)
+
     # Downloads the photo to local storage. 
     fh = io.FileIO(temp_dir + fileName, mode='wb')
     downloader = MediaIoBaseDownload(fd=fh, request=request)
