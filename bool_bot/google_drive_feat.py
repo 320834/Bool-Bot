@@ -69,7 +69,7 @@ def get_file_id(filename):
 
     filename : String - The file name
 
-    return file_id : String - The file id from google drive  
+    return found_files : Array<Object(id, name, webViewLink)> - The file id from google drive  
     """
 
     creds = authenticate()
@@ -96,6 +96,8 @@ def download_photo(fileId, fileName):
 
     request = service.files().get_media(fileId=fileId)
 
+    # print(request)
+
     # Downloads the photo to local storage. 
     fh = io.FileIO(temp_dir + fileName, mode='wb')
     downloader = MediaIoBaseDownload(fd=fh, request=request)
@@ -109,3 +111,26 @@ def download_photo(fileId, fileName):
     fh.close()
 
     return fileName
+
+def get_files_search(query):
+    """
+    Get the files that contains the query
+
+    query : String - The query
+
+    return found_files : Array<Object()> - The number of found files
+    """
+
+    creds = authenticate()
+    service = build('drive', 'v3', credentials=creds)
+
+    page_token = None
+    response = service.files().list(q="name contains '{0}'".format(query), 
+                                    pageSize=10,
+                                    spaces="drive", 
+                                    fields='nextPageToken, files(id, name, webViewLink)',
+                                    pageToken=page_token,
+                                    
+                                    ).execute()
+    
+    return response["files"]
