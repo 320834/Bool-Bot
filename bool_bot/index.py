@@ -189,10 +189,11 @@ async def send_photo(ctx, file_id, file_name, description):
 
     await ctx.send("Sending Photo", file=file_photo, embed=embed)
 
+    buffered.close()
+
     # Deletes file from local storage
     os.remove(temp_dir + photo_name)
 
-    buffered.close()
 
     return
 
