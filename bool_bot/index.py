@@ -200,10 +200,18 @@ async def photo_search(ctx, query):
     embed = discord.Embed(title="Select an option. Enter a number from list. Enter c to cancel")
     embed.description = description
 
-    await ctx.send(embed=embed)
+    # Takes discord message type
+    message = await ctx.send(embed=embed)
+
+    # Store found_files and message in a dictionary.
+    request = {
+        "files": found_files,
+        "message": message
+    }
+    
     
     # Push request to photo requests
-    photo_requests[ctx.author.id] = found_files
+    photo_requests[ctx.author.id] = request
 
 async def send_photo(ctx, file_id, file_name, description):
     """
@@ -246,6 +254,11 @@ async def process_search_request(message):
         return
 
     if bool(photo_requests) and photo_requests[user_id] != None and message.content == 'c':
+        
+        message = photo_requests[user_id]["message"]
+        # Delete query embed
+        await message.delete()
+        
         del photo_requests[user_id]
 
         return await message.channel.send("Cancelling Request")
@@ -259,10 +272,15 @@ async def process_search_request(message):
             return await message.channel.send("Please enter a number")
 
         try:
-            file_id = photo_requests[user_id][index]["id"]
-            file_name = photo_requests[user_id][index]["name"]
-            description = photo_requests[user_id][index]["webViewLink"]
+            file_id = photo_requests[user_id]["files"][index]["id"]
+            file_name = photo_requests[user_id]["files"][index]["name"]
+            description = photo_requests[user_id]["files"][index]["webViewLink"]
+
+            message = photo_requests[user_id]["message"]
             
+            # Delete query embed
+            await message.delete()
+
             # Third argument takes file id as the file name. Due to privacy reasons, we won't upload the photo name to discord
             await send_photo(message.channel, file_id, "{0}.jpeg".format(file_id), description)
         except IndexError:
@@ -272,6 +290,7 @@ async def process_search_request(message):
         del photo_requests[user_id]
 
         return
+
 
 def main():
     """
