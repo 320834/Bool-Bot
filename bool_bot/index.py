@@ -3,6 +3,7 @@ from discord.ext import commands
 import os 
 from settings import DISCORD_API_KEY
 import io
+import random
 
 # Features
 import example_feat
@@ -20,6 +21,7 @@ import google_drive_feat
 # Global vars
 
 photo_requests = {}
+bot_channel = 'bool-bot-test'
 
 # ================================================================================
 # Temp directory
@@ -47,13 +49,15 @@ async def on_message(message):
     """
     Coroutine event. Invoked when user sends a message
     """
-    result = await bot.process_commands(message)
+    if message.channel.name == bot_channel:
 
-    # Ensure no feedback loop.
-    if message.author.name != bot.user.name and message.content[0] != "!":
-        #Uncomment next line to test on_message
-        await process_search_request(message)
-        # await example_feat.send_mess(message)
+        result = await bot.process_commands(message)
+
+        # Ensure no feedback loop.
+        if message.author.name != bot.user.name and message.content[0] != "!":
+            #Uncomment next line to test on_message
+            await process_search_request(message)
+            # await example_feat.send_mess(message)
 
 @bot.event
 async def on_command_error(context, exception):
@@ -109,13 +113,41 @@ async def photo(ctx, search_option, query):
         # Find and return photo with google id
         await photo_id(ctx, query)
         pass
+    elif search_option == "r" or search_option == "random":
+        # Return random photo from recent files list
+        await photo_random(ctx, query)
+        pass
+    else:
+        await ctx.send("Something is wrong with your query, most likely that the option you provided is not valid")
     
 @bot.command(name="listrequests")
 async def list_requests(ctx):
     print(photo_requests)
 
+
 # ================================================================================
 # Helper functions
+
+async def photo_random(ctx, query):
+    """
+    Send random photo based on name in query.
+
+    Ex. !photo r justin
+    This command will return a random photo, where the file name begins with "justin"
+
+    """
+    found_files = google_drive_feat.get_files_search(query)
+
+    if len(found_files) == 0:
+        await ctx.send("No random photo found, probably because there are no photo/file names with the query you requested")
+        return
+
+    random_index = random.randint(0, len(found_files) - 1)
+    random_file_id = found_files[random_index]["id"]
+
+    await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "A random picture")
+    
+        
 
 async def photo_id(ctx, file_id):
     """
@@ -152,6 +184,10 @@ async def photo_search(ctx, query):
 
     # Continue with query
     found_files = google_drive_feat.get_files_search(query)
+
+    if len(found_files) == 0:
+        await ctx.send("There are no photos that start with {}".format(query)) # await neeeded???
+        return
 
     description = ""
 
