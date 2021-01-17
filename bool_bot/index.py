@@ -3,6 +3,7 @@ from discord.ext import commands
 import os 
 from settings import DISCORD_API_KEY
 import io
+import random
 
 # Features
 import example_feat
@@ -20,6 +21,7 @@ import google_drive_feat
 # Global vars
 
 photo_requests = {}
+bot_channel = 'bool-bot-test'
 
 # ================================================================================
 # Temp directory
@@ -47,13 +49,15 @@ async def on_message(message):
     """
     Coroutine event. Invoked when user sends a message
     """
-    result = await bot.process_commands(message)
+    if message.channel.name == bot_channel:
 
-    # Ensure no feedback loop.
-    if message.author.name != bot.user.name and message.content[0] != "!":
-        #Uncomment next line to test on_message
-        await process_search_request(message)
-        # await example_feat.send_mess(message)
+        result = await bot.process_commands(message)
+
+        # Ensure no feedback loop.
+        if message.author.name != bot.user.name and message.content[0] != "!":
+            #Uncomment next line to test on_message
+            await process_search_request(message)
+            # await example_feat.send_mess(message)
 
 @bot.event
 async def on_command_error(context, exception):
@@ -109,13 +113,41 @@ async def photo(ctx, search_option, query):
         # Find and return photo with google id
         await photo_id(ctx, query)
         pass
+    elif search_option == "r" or search_option == "random":
+        # Return random photo from recent files list
+        await photo_random(ctx, query)
+        pass
+    else:
+        await ctx.send("Something is wrong with your query, most likely that the option you provided is not valid")
     
 @bot.command(name="listrequests")
 async def list_requests(ctx):
     print(photo_requests)
 
+
 # ================================================================================
 # Helper functions
+
+async def photo_random(ctx, query):
+    """
+    Send random photo based on name in query.
+
+    Ex. !photo r justin
+    This command will return a random photo, where the file name begins with "justin"
+
+    """
+    found_files = google_drive_feat.get_files_search(query)
+
+    if len(found_files) == 0:
+        await ctx.send("No random photo found, probably because there are no photo/file names with the query you requested")
+        return
+
+    random_index = random.randint(0, len(found_files) - 1)
+    random_file_id = found_files[random_index]["id"]
+
+    await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "A random picture")
+    
+        
 
 async def photo_id(ctx, file_id):
     """
@@ -153,6 +185,10 @@ async def photo_search(ctx, query):
     # Continue with query
     found_files = google_drive_feat.get_files_search(query)
 
+    if len(found_files) == 0:
+        await ctx.send("There are no photos that start with {}".format(query)) # await neeeded???
+        return
+
     description = ""
 
     for i in range(0 , len(found_files)):
@@ -164,10 +200,18 @@ async def photo_search(ctx, query):
     embed = discord.Embed(title="Select an option. Enter a number from list. Enter c to cancel")
     embed.description = description
 
-    await ctx.send(embed=embed)
+    # Takes discord message type
+    message = await ctx.send(embed=embed)
+
+    # Store found_files and message in a dictionary.
+    request = {
+        "files": found_files,
+        "message": message
+    }
+    
     
     # Push request to photo requests
-    photo_requests[ctx.author.id] = found_files
+    photo_requests[ctx.author.id] = request
 
 async def send_photo(ctx, file_id, file_name, description):
     """
@@ -210,6 +254,11 @@ async def process_search_request(message):
         return
 
     if bool(photo_requests) and photo_requests[user_id] != None and message.content == 'c':
+        
+        message = photo_requests[user_id]["message"]
+        # Delete query embed
+        await message.delete()
+        
         del photo_requests[user_id]
 
         return await message.channel.send("Cancelling Request")
@@ -223,10 +272,15 @@ async def process_search_request(message):
             return await message.channel.send("Please enter a number")
 
         try:
-            file_id = photo_requests[user_id][index]["id"]
-            file_name = photo_requests[user_id][index]["name"]
-            description = photo_requests[user_id][index]["webViewLink"]
+            file_id = photo_requests[user_id]["files"][index]["id"]
+            file_name = photo_requests[user_id]["files"][index]["name"]
+            description = photo_requests[user_id]["files"][index]["webViewLink"]
+
+            message = photo_requests[user_id]["message"]
             
+            # Delete query embed
+            await message.delete()
+
             # Third argument takes file id as the file name. Due to privacy reasons, we won't upload the photo name to discord
             await send_photo(message.channel, file_id, "{0}.jpeg".format(file_id), description)
         except IndexError:
@@ -236,6 +290,7 @@ async def process_search_request(message):
         del photo_requests[user_id]
 
         return
+
 
 def main():
     """

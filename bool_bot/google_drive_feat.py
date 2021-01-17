@@ -6,7 +6,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
 import io
-import index
 
 # Documentation Links
 # In-depth documentation:
