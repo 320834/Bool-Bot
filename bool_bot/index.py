@@ -102,6 +102,19 @@ async def phototest(ctx):
 
 @bot.command(name="photo")
 async def photo(ctx, search_option, query):
+    """
+    Photo commands. Refer below for commands.
+
+    Flags
+    
+    s or search - Search for a photo via name. Ex. !photo s kurt
+    e or exact - Return a photo with exact name. Ex. !photo e davidmald.jpg
+    i or id - Return a photo by google drive id. Ex. !photo i 1CeUaHMY5-Fm5XD36u3QWUZLaG6qAZUPq
+    r or random - Return a photo randomly from a query. Ex. !photo r justin
+    rf or randomfile - Return a photo randomly from a specified folder. Ex. !photo rf test
+
+    """
+
     if search_option == "s" or search_option == "search":
         # Searches for photos with name
         await photo_search(ctx, query)
@@ -122,6 +135,9 @@ async def photo(ctx, search_option, query):
 
 @bot.command(name="listrequests")
 async def list_requests(ctx):
+    """
+    A development command to inspect the photo requests
+    """
     print(photo_requests)
 
 
@@ -197,11 +213,19 @@ async def photo_name(ctx, photo_name):
     await send_photo(ctx, file_id, file_id, web_link)
 
 async def photo_search(ctx, query):
+    """
+    Helper function for command photo s query. Process request of a query. Returns an embed with options. 
+    """
 
     #Check if current user has a pending request
     if (ctx.author.id in photo_requests):
+<<<<<<< HEAD
         # Found pending request. Deny
         return ctx.send("Pending request, please chose or enter c to cancel")
+=======
+        # Found pending request. Deny 
+        return ctx.send("Pending request, please choose or enter c to cancel")
+>>>>>>> updated code documentation
 
     # Continue with query
     found_files = google_drive_feat.get_files_search(query)

@@ -94,6 +94,8 @@ def download_photo(fileId, fileName):
 
     fileId : String - The file id 
     fileName : String - The file name
+
+    return : String - The file name
     """
     creds = authenticate()
     service = build('drive', 'v3', credentials=creds)
@@ -122,7 +124,7 @@ def get_files_search(query):
 
     query : String - The query
 
-    return found_files : Array<Object()> - The number of found files
+    return : Array<Object(id, name, webViewLink)> - An array of files. Each file has id, name, and webViewLink attributes
     """
 
     creds = authenticate()
@@ -145,7 +147,7 @@ def get_folder_contents(query):
 
     query : String - The folder query
 
-    return : Array<Object> - The file meta data of folder. Object structure {"id", "name", "webViewLink"}
+    return : Array<Object(id, name, webViewLink)> - An array of files. Each file has id, name, and webViewLink attributes
 
     """
 
