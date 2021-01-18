@@ -1,15 +1,16 @@
 import discord
 from discord.ext import commands
-import os 
+import os
 from settings import DISCORD_API_KEY
 import io
 import random
+import asyncio
 
 # Features
 import example_feat
 import google_drive_feat
 
-# Use bot commands extension. 
+# Use bot commands extension.
 # Tutorial: https://discordpy.readthedocs.io/en/latest/ext/commands/index.html
 # API: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#bot
 
@@ -35,7 +36,7 @@ bot = commands.Bot(command_prefix='!')
 bot.description = ""
 
 # ================================================================================
-# Events. 
+# Events.
 
 @bot.event
 async def on_ready():
@@ -62,7 +63,7 @@ async def on_message(message):
 @bot.event
 async def on_command_error(context, exception):
     """
-    Coroutine event. Invoked when error has occurred with processing a command. 
+    Coroutine event. Invoked when error has occurred with processing a command.
     """
     await context.send("An error has occurred with your request. {0}".format(exception))
 
@@ -73,7 +74,7 @@ async def on_command_error(context, exception):
 @bot.command(name="files")
 async def files(ctx):
     """
-    Command for returning the recent files on google drive. 
+    Command for returning the recent files on google drive.
     """
     files = google_drive_feat.get_recent_files()
 
@@ -119,7 +120,7 @@ async def photo(ctx, search_option, query):
         pass
     else:
         await ctx.send("Something is wrong with your query, most likely that the option you provided is not valid")
-    
+
 @bot.command(name="listrequests")
 async def list_requests(ctx):
     print(photo_requests)
@@ -146,8 +147,8 @@ async def photo_random(ctx, query):
     random_file_id = found_files[random_index]["id"]
 
     await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "A random picture")
-    
-        
+
+
 
 async def photo_id(ctx, file_id):
     """
@@ -179,7 +180,7 @@ async def photo_search(ctx, query):
 
     #Check if current user has a pending request
     if (ctx.author.id in photo_requests):
-        # Found pending request. Deny 
+        # Found pending request. Deny
         return ctx.send("Pending request, please chose or enter c to cancel")
 
     # Continue with query
@@ -208,17 +209,23 @@ async def photo_search(ctx, query):
         "files": found_files,
         "message": message
     }
-    
-    
+
+
     # Push request to photo requests
     photo_requests[ctx.author.id] = request
+    try:
+        await bot.wait_for('message',timeout=10.0)
+    except asyncio.TimeoutError:
+        del photo_requests[ctx.author.id]
+        await message.delete()
+        await ctx.send('Request {} timed out'.format(query))
 
 async def send_photo(ctx, file_id, file_name, description):
     """
     Sends the photo to where the command is issued
 
     ctx : Context - A contex class. Part of discord.py. Refer to do here (https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#context)
-    file_id : String - The google drive file id. 
+    file_id : String - The google drive file id.
     file_name : String - The output file name shown in discord.
     """
 
@@ -254,11 +261,11 @@ async def process_search_request(message):
         return
 
     if bool(photo_requests) and photo_requests[user_id] != None and message.content == 'c':
-        
+
         message = photo_requests[user_id]["message"]
         # Delete query embed
         await message.delete()
-        
+
         del photo_requests[user_id]
 
         return await message.channel.send("Cancelling Request")
@@ -277,7 +284,7 @@ async def process_search_request(message):
             description = photo_requests[user_id]["files"][index]["webViewLink"]
 
             message = photo_requests[user_id]["message"]
-            
+
             # Delete query embed
             await message.delete()
 
