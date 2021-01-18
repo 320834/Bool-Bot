@@ -104,19 +104,18 @@ async def photo(ctx, search_option, query):
     if search_option == "s" or search_option == "search":
         # Searches for photos with name
         await photo_search(ctx, query)
-        pass
     elif search_option == "e" or search_option == "exact":
         # Find and return photo with exact name
         await photo_name(ctx, query)
-        pass
     elif search_option == "i" or search_option == "id":
         # Find and return photo with google id
         await photo_id(ctx, query)
-        pass
     elif search_option == "r" or search_option == "random":
         # Return random photo from recent files list
         await photo_random(ctx, query)
-        pass
+    elif search_option == "rf" or search_option == "randomfile":
+        # Return random photo from a specified folder
+        await folder_random(ctx, query)
     else:
         await ctx.send("Something is wrong with your query, most likely that the option you provided is not valid")
     
@@ -127,6 +126,27 @@ async def list_requests(ctx):
 
 # ================================================================================
 # Helper functions
+
+async def folder_random(ctx, query):
+    """
+    Send a photo randomly by querying a folder. Type !photo rf test
+    """
+
+    files = google_drive_feat.get_folder_contents(query)
+
+    
+    if files == "No Folder":
+        return await ctx.send("Folder {0} cannot be found".format(query))
+    elif files == "Multiple Folders":
+        return await ctx.send("Multiple folders with name {0}. Stopping request".format(query))
+    elif len(files) == 0:
+        return await ctx.send("No files in folder {0}". format(query))
+    
+    random_index = random.randint(0, len(files) - 1)
+    random_file_id = files[random_index]["id"]
+
+    await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "Random photo from {0}".format(query))
+
 
 async def photo_random(ctx, query):
     """
@@ -147,8 +167,6 @@ async def photo_random(ctx, query):
 
     await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "A random picture")
     
-        
-
 async def photo_id(ctx, file_id):
     """
     Send a photo by photo id. Type !photo_id "google_file_id"
@@ -220,6 +238,7 @@ async def send_photo(ctx, file_id, file_name, description):
     ctx : Context - A contex class. Part of discord.py. Refer to do here (https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#context)
     file_id : String - The google drive file id. 
     file_name : String - The output file name shown in discord.
+    description : String - The description of the photo in discord embed
     """
 
     photo_name = google_drive_feat.download_photo(file_id, file_name)
