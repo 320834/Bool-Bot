@@ -1,6 +1,6 @@
 # Bool Bot
 
-A discord bot for server. 
+A discord bot for server.
 
 # Installation
 
@@ -10,12 +10,12 @@ For linux/mac users (in the command line):
 
 1. pip3 install -r requirements.txt
 (Installs everything in requirements.txt, feel free to add it if you find other packages you want to use)
-2. touch .env 
+2. touch .env
 3. touch google-drive-credentials.json
 (For steps 2-3, ask Justin or go onto the test server to find the files)
-4. pip3 install -e . 
+4. pip3 install -e .
 (Loads the bool_bot as its own library. Need to do this for tests)
-5. python3 bool_bot 
+5. python3 bool_bot
 (To start the app)
 
 # Tests
