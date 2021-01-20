@@ -219,14 +219,8 @@ async def photo_search(ctx, query):
 
     #Check if current user has a pending request
     if (ctx.author.id in photo_requests):
-<<<<<<< HEAD
         # Found pending request. Deny
         return ctx.send("Pending request, please chose or enter c to cancel")
-=======
-        # Found pending request. Deny 
-        return ctx.send("Pending request, please choose or enter c to cancel")
->>>>>>> updated code documentation
-
     # Continue with query
     found_files = google_drive_feat.get_files_search(query)
 
