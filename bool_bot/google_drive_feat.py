@@ -142,7 +142,6 @@ def get_folder_ids(root_folder_id):
                                     pageToken=page_token,
 
                                     ).execute()
-
     found_ids = [response["files"][i]["id"] for i in range(0, len(response["files"]))] # extract all the IDs
     found_ids.append(root_folder_id) # if the Photos folder(as named on Google Drive) just contains folders, this is not needed
 
