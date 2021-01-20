@@ -19,6 +19,9 @@ temp_dir = "./bool_bot/files/"
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
+# Main Folder ID
+main_folder_id = '1CeUaHMY5-Fm5XD36u3QWUZLaG6qAZUPq'
+
 def authenticate():
     """
     Shows basic usage of the Drive v3 API.
@@ -111,6 +114,34 @@ def download_photo(fileId, fileName):
 
     return fileName
 
+def get_folder_ids(root_folder_id):
+    """
+    Returns all the sub folder IDs starting at root_folder(includes the root_folder ID). Goes one level deep.
+
+    Ex: If the root folder has folder1, folder2 and folder3 in it, this will return a list of length 4 with the IDs associated
+    with those 3 folders, and the ID of the root folder. However if the 3 folders have subfolders in them as well, this function will not return those subfolder IDs. 
+
+    Note: If more than one level deep is needed, a recursive version can be implemented. However this might get very slow if the folder tree structure gets very
+    complex. Refer to this if needed: https://stackoverflow.com/questions/41741520/how-do-i-search-sub-folders-and-sub-sub-folders-in-google-drive
+    """
+    creds = authenticate()
+    service = build('drive', 'v3', credentials=creds)
+
+    page_token = None
+    response = service.files().list(q="mimeType = 'application/vnd.google-apps.folder' and '{}' in parents and trashed = false".format(root_folder_id), 
+                                    pageSize=10,
+                                    spaces="drive", 
+                                    fields='nextPageToken, files(id, name, webViewLink)',
+                                    pageToken=page_token,
+                                    
+                                    ).execute()
+    
+    found_ids = [response["files"][i]["id"] for i in range(0, len(response["files"]))] # extract all the IDs
+    found_ids.append(root_folder_id) # if the Photos folder(as named on Google Drive) just contains folders, this is not needed
+
+    return found_ids
+
+
 def get_files_search(query):
     """
     Get the files that contains the query
@@ -123,13 +154,18 @@ def get_files_search(query):
     creds = authenticate()
     service = build('drive', 'v3', credentials=creds)
 
-    page_token = None
-    response = service.files().list(q="name contains '{0}'".format(query), 
-                                    pageSize=10,
-                                    spaces="drive", 
-                                    fields='nextPageToken, files(id, name, webViewLink)',
-                                    pageToken=page_token,
-                                    
-                                    ).execute()
-    
-    return response["files"]
+    folder_ids = get_folder_ids(main_folder_id)
+    found_files = []
+
+    for id in folder_ids:
+        page_token = None
+        response = service.files().list(q="name contains '{}' and '{}' in parents and trashed = false and mimeType != 'application/vnd.google-apps.folder'".format(query, id), 
+                                        pageSize=10,
+                                        spaces="drive", 
+                                        fields='nextPageToken, files(id, name, webViewLink)',
+                                        pageToken=page_token,
+                                        
+                                        ).execute()
+        found_files.extend(response["files"]) # simply add to the current list of files found in other folders
+        
+    return found_files
