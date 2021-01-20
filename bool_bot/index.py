@@ -102,32 +102,68 @@ async def phototest(ctx):
 
 @bot.command(name="photo")
 async def photo(ctx, search_option, query):
+    """
+    Photo commands. Refer below for commands.
+
+    Flags
+    
+    s or search - Search for a photo via name. Ex. !photo s kurt
+    e or exact - Return a photo with exact name. Ex. !photo e davidmald.jpg
+    i or id - Return a photo by google drive id. Ex. !photo i 1CeUaHMY5-Fm5XD36u3QWUZLaG6qAZUPq
+    r or random - Return a photo randomly from a query. Ex. !photo r justin
+    rf or randomfile - Return a photo randomly from a specified folder. Ex. !photo rf test
+
+    """
+
     if search_option == "s" or search_option == "search":
         # Searches for photos with name
         await photo_search(ctx, query)
-        pass
     elif search_option == "e" or search_option == "exact":
         # Find and return photo with exact name
         await photo_name(ctx, query)
-        pass
     elif search_option == "i" or search_option == "id":
         # Find and return photo with google id
         await photo_id(ctx, query)
-        pass
     elif search_option == "r" or search_option == "random":
         # Return random photo from recent files list
         await photo_random(ctx, query)
-        pass
+    elif search_option == "rf" or search_option == "randomfile":
+        # Return random photo from a specified folder
+        await folder_random(ctx, query)
     else:
         await ctx.send("Something is wrong with your query, most likely that the option you provided is not valid")
 
 @bot.command(name="listrequests")
 async def list_requests(ctx):
+    """
+    A development command to inspect the photo requests
+    """
     print(photo_requests)
 
 
 # ================================================================================
 # Helper functions
+
+async def folder_random(ctx, query):
+    """
+    Send a photo randomly by querying a folder. Type !photo rf test
+    """
+
+    files = google_drive_feat.get_folder_contents(query)
+
+    
+    if files == "No Folder":
+        return await ctx.send("Folder {0} cannot be found".format(query))
+    elif files == "Multiple Folders":
+        return await ctx.send("Multiple folders with name {0}. Stopping request".format(query))
+    elif len(files) == 0:
+        return await ctx.send("No files in folder {0}". format(query))
+    
+    random_index = random.randint(0, len(files) - 1)
+    random_file_id = files[random_index]["id"]
+
+    await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "Random photo from {0}".format(query))
+
 
 async def photo_random(ctx, query):
     """
@@ -177,12 +213,14 @@ async def photo_name(ctx, photo_name):
     await send_photo(ctx, file_id, file_id, web_link)
 
 async def photo_search(ctx, query):
+    """
+    Helper function for command photo s query. Process request of a query. Returns an embed with options. 
+    """
 
     #Check if current user has a pending request
     if (ctx.author.id in photo_requests):
         # Found pending request. Deny
         return ctx.send("Pending request, please chose or enter c to cancel")
-
     # Continue with query
     found_files = google_drive_feat.get_files_search(query)
 
@@ -227,6 +265,7 @@ async def send_photo(ctx, file_id, file_name, description):
     ctx : Context - A contex class. Part of discord.py. Refer to do here (https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#context)
     file_id : String - The google drive file id.
     file_name : String - The output file name shown in discord.
+    description : String - The description of the photo in discord embed
     """
 
     photo_name = google_drive_feat.download_photo(file_id, file_name)

@@ -7,11 +7,16 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
 import io
 
+from settings import ROOT_PHOTO_FILE_ID
+
 # Documentation Links
 # In-depth documentation:
 # https://developers.google.com/resources/api-libraries/documentation/drive/v3/python/latest/drive_v3.files.html
 # Tutorial Documentation:
 # https://developers.google.com/drive/api/v3/about-files
+
+# Root File ID For Photo 
+
 
 # Temp Dir
 temp_dir = "./bool_bot/files/"
@@ -89,6 +94,8 @@ def download_photo(fileId, fileName):
 
     fileId : String - The file id 
     fileName : String - The file name
+
+    return : String - The file name
     """
     creds = authenticate()
     service = build('drive', 'v3', credentials=creds)
@@ -117,7 +124,7 @@ def get_files_search(query):
 
     query : String - The query
 
-    return found_files : Array<Object()> - The number of found files
+    return : Array<Object(id, name, webViewLink)> - An array of files. Each file has id, name, and webViewLink attributes
     """
 
     creds = authenticate()
@@ -129,7 +136,50 @@ def get_files_search(query):
                                     spaces="drive", 
                                     fields='nextPageToken, files(id, name, webViewLink)',
                                     pageToken=page_token,
-                                    
+
                                     ).execute()
     
+    return response["files"]
+
+def get_folder_contents(query):
+    """
+    Get the file contents of a specific folder.
+
+    query : String - The folder query
+
+    return : Array<Object(id, name, webViewLink)> - An array of files. Each file has id, name, and webViewLink attributes
+
+    """
+
+    creds = authenticate()
+    service = build('drive', 'v3', credentials=creds)
+
+    #Fetch folder id of query. Should return one folder id. Structure {'files': [{'id': 'aase8f828efe82'}]} 
+    page_token = None
+    response = service.files().list(
+        q="parents in '{0}' and name = '{1}' and mimeType = 'application/vnd.google-apps.folder'".format(ROOT_PHOTO_FILE_ID, query),
+        pageSize=10,
+        spaces="drive", 
+        fields='nextPageToken, files(id)',
+        pageToken=page_token,
+    ).execute()
+
+    if(len(response["files"]) > 1):
+        return "Multiple Folders"
+
+    if(len(response["files"]) == 0):
+        return "No Folder"
+
+    folder_id = response["files"][0]["id"]
+
+    #Return the first 100 files in the folder
+    page_token = None
+    response = service.files().list(
+        q="parents in '{0}'".format(folder_id),
+        pageSize=100,
+        spaces="drive", 
+        fields='nextPageToken, files(id, name, webViewLink)',
+        pageToken=page_token,
+    ).execute()
+
     return response["files"]
