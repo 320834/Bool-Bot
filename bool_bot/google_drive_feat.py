@@ -155,6 +155,8 @@ def get_folder_contents(query):
 
     return : Array<Object(id, name, webViewLink)> - An array of files. Each file has id, name, and webViewLink attributes
     """
+    creds = authenticate()
+    service = build('drive', 'v3', credentials=creds)
 
     #Fetch folder id of query. Should return one folder id. Structure {'files': [{'id': 'aase8f828efe82'}]} 
     page_token = None
