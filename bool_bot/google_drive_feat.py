@@ -161,7 +161,7 @@ def get_folder_contents(query):
     #Fetch folder id of query. Should return one folder id. Structure {'files': [{'id': 'aase8f828efe82'}]} 
     page_token = None
     response = service.files().list(
-        q="parents in '{0}' and name = '{1}' and mimeType = 'application/vnd.google-apps.folder'".format(ROOT_PHOTO_FILE_ID, query),
+        q="parents in '{0}' and name = '{1}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false".format(ROOT_PHOTO_FILE_ID, query),
         pageSize=10,
         spaces="drive", 
         fields='nextPageToken, files(id)',
