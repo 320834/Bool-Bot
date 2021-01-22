@@ -7,7 +7,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
 import io
 
-from settings import ROOT_PHOTO_FILE_ID
+from settings import ROOT_PHOTO_FOLDER_ID
 
 # Documentation Links
 # In-depth documentation:
@@ -23,9 +23,6 @@ temp_dir = "./bool_bot/files/"
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive']
-
-# Main Folder ID
-main_folder_id = '1CeUaHMY5-Fm5XD36u3QWUZLaG6qAZUPq'
 
 def authenticate():
     """
@@ -161,7 +158,7 @@ def get_folder_contents(query):
     #Fetch folder id of query. Should return one folder id. Structure {'files': [{'id': 'aase8f828efe82'}]} 
     page_token = None
     response = service.files().list(
-        q="parents in '{0}' and name = '{1}' and mimeType = 'application/vnd.google-apps.folder'".format(ROOT_PHOTO_FILE_ID, query),
+        q="parents in '{0}' and name = '{1}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false".format(ROOT_PHOTO_FILE_ID, query),
         pageSize=10,
         spaces="drive", 
         fields='nextPageToken, files(id)',
@@ -201,7 +198,7 @@ def get_files_search(query):
     creds = authenticate()
     service = build('drive', 'v3', credentials=creds)
 
-    folder_ids = get_folder_ids(main_folder_id)
+    folder_ids = get_folder_ids(ROOT_PHOTO_FOLDER_ID)
     found_files = []
 
     for id in folder_ids:
