@@ -135,7 +135,7 @@ def get_folder_ids(root_folder_id):
     response = service.files().list(q="mimeType = 'application/vnd.google-apps.folder' and '{}' in parents and trashed = false".format(root_folder_id), 
                                     pageSize=10,
                                     spaces="drive", 
-                                    fields='nextPageToken, files(id, name, webViewLink)',
+                                    fields='nextPageToken, files(id)',
                                     pageToken=page_token,
 
                                     ).execute()
@@ -158,7 +158,7 @@ def get_folder_contents(query):
     #Fetch folder id of query. Should return one folder id. Structure {'files': [{'id': 'aase8f828efe82'}]} 
     page_token = None
     response = service.files().list(
-        q="parents in '{0}' and name = '{1}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false".format(ROOT_PHOTO_FILE_ID, query),
+        q="parents in '{0}' and name = '{1}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false".format(ROOT_PHOTO_FOLDER_ID, query),
         pageSize=10,
         spaces="drive", 
         fields='nextPageToken, files(id)',
@@ -176,7 +176,7 @@ def get_folder_contents(query):
     #Return the first 100 files in the folder
     page_token = None
     response = service.files().list(
-        q="parents in '{0}'".format(folder_id),
+        q="parents in '{0}' and trashed = false and (mimeType = 'image/jpeg' or mimeType = 'image/png' or mimeType = 'image/svg+xml')".format(folder_id),
         pageSize=100,
         spaces="drive", 
         fields='nextPageToken, files(id, name, webViewLink)',
@@ -203,7 +203,7 @@ def get_files_search(query):
 
     for id in folder_ids:
         page_token = None
-        response = service.files().list(q="name contains '{}' and '{}' in parents and trashed = false and mimeType != 'application/vnd.google-apps.folder'".format(query, id), 
+        response = service.files().list(q="name contains '{}' and '{}' in parents and trashed = false and (mimeType = 'image/jpeg' or mimeType = 'image/png' or mimeType = 'image/svg+xml')".format(query, id), 
                                         pageSize=10,
                                         spaces="drive", 
                                         fields='nextPageToken, files(id, name, webViewLink)',
