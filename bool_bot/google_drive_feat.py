@@ -135,7 +135,7 @@ def get_folder_ids(root_folder_id):
     response = service.files().list(q="mimeType = 'application/vnd.google-apps.folder' and '{}' in parents and trashed = false".format(root_folder_id), 
                                     pageSize=10,
                                     spaces="drive", 
-                                    fields='nextPageToken, files(id)',
+                                    fields='nextPageToken, files(id, name, webViewLink)',
                                     pageToken=page_token,
 
                                     ).execute()
