@@ -23,7 +23,7 @@ import google_drive_feat
 # Global vars
 
 photo_requests = {}
-bot_channel = 'bool-bot-test'
+bot_channels = {}
 
 # ================================================================================
 # Temp directory
@@ -51,7 +51,11 @@ async def on_message(message):
     """
     Coroutine event. Invoked when user sends a message
     """
-    if message.channel.name == bot_channel:
+
+    if (message.content.find("!channel") != -1):
+        return await bot.process_commands(message)
+
+    if message.channel.name in bot_channels:
 
         result = await bot.process_commands(message)
 
@@ -154,11 +158,58 @@ async def ls(ctx):
         # Send decision embed
     embed = discord.Embed(title='Sub-directories found:')
     embed.description = description
+    
+@bot.command(name="channel-list")
+async def channel_list(ctx):
+    """
+    Command to list which channels is the bot allowed be issued commands
+    """
+    channels = ctx.guild.text_channels
+    
+    bot_active_channels = []
+    bot_nonactive_channels = []
+
+    for channel in channels:
+        if channel.name in bot_channels:
+            bot_active_channels.append(channel.name)
+        else:
+            bot_nonactive_channels.append(channel.name)        
+
+    active_bot_message = "\n".join(bot_active_channels)
+    nonactive_bot_message = "\n".join(bot_nonactive_channels)
+
+    message = "Bot Access Channels\n\n{0}\n\nBot Non Access Channels\n\n{1}".format(active_bot_message, nonactive_bot_message)
+    embed = discord.Embed(title="Bot Permissions channel", description=message)
+    return await ctx.send("", embed=embed)
+
+@bot.command(name="channel")
+async def channel(ctx, flag, query):
+    """
+    Add or remove bot from a specific channel. If added to a specific channel, regular users can issue bot commands. 
+    WARNING: Need to be an admin of the guild to issue this command
+
+    Flags
+    a or add - Add a bot to a channel. Ex. !channel a bool-bol-test
+    d or delete - Remove a bot from a channel. Ex. !channel d bool-bot-test
+    """
+
+    # Make sure user is an admin
+
+    if not ctx.author.guild_permissions.administrator:
+        return
+
+    if flag == "a" or flag == "add":
+        await channel_add(ctx, query)
+    elif flag == "r" or flag == "remove":
+        await channel_remove(ctx, query)
+    else:
+        return await ctx.send("Issues with your request. Are you sure you are entering the right flags")
+
 
     # Takes discord message type
     message = await ctx.send(embed=embed)
 # ================================================================================
-# Helper functions
+# Photo functions
 
 async def folder_random(ctx, query):
     """
@@ -354,6 +405,43 @@ async def process_search_request(message):
 
         return
 
+# ================================================================================
+# Channel functions
+
+async def channel_add(ctx, name):
+    """
+    Add a bot to a channel via name
+    """
+
+    if name in bot_channels:
+        return await ctx.send("Channel already added")
+
+    channels = ctx.guild.text_channels
+
+    found_channels = filter(lambda channel: channel.name == name, channels)
+
+    if len(list(found_channels)) > 0:
+        bot_channels[name] = "no"
+        return await ctx.send("Sucessfully added to {0} text channel".format(name))
+
+    return await ctx.send("Cannot find channel {0}".format(name))
+
+async def channel_remove(ctx, name):
+    """
+    Delete a bot from a channel via name
+    """
+    
+    channels = ctx.guild.text_channels
+    found_channels = filter(lambda channel: channel.name == name, channels)
+
+    if not (name in bot_channels) and len(list(found_channels)) > 0:
+        return await ctx.send("Cannot delete channel. Channel is not in this channel already")
+
+    if len(list(found_channels)) > 0:
+        del bot_channels[name]
+        return await ctx.send("Sucessfully remove bot from {0} text channel".format(name))
+
+    return await ctx.send("Cannot find channel {0}".format(name))
 
 def main():
     """
