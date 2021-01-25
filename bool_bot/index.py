@@ -143,6 +143,9 @@ async def list_requests(ctx):
 
 @bot.command(name="ls")
 async def ls(ctx):
+    """
+    Lists the subdirectories in root photo folder. Useful for finding a random photo in a folder
+    """
     folder_ids, folder_names = google_drive_feat.get_folder_ids(ROOT_PHOTO_FOLDER_ID)
     description = ''
 
