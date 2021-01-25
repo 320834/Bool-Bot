@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import os
 from settings import DISCORD_API_KEY
+from settings import ROOT_PHOTO_FOLDER_ID
 import io
 import random
 import asyncio
@@ -106,7 +107,7 @@ async def photo(ctx, search_option, query):
     Photo commands. Refer below for commands.
 
     Flags
-    
+
     s or search - Search for a photo via name. Ex. !photo s kurt
     e or exact - Return a photo with exact name. Ex. !photo e davidmald.jpg
     i or id - Return a photo by google drive id. Ex. !photo i 1CeUaHMY5-Fm5XD36u3QWUZLaG6qAZUPq
@@ -140,7 +141,22 @@ async def list_requests(ctx):
     """
     print(photo_requests)
 
+@bot.command(name="ls")
+async def ls(ctx):
+    """
+    Lists the subdirectories in root photo folder. Useful for finding a random photo in a folder
+    """
+    folder_ids, folder_names = google_drive_feat.get_folder_ids(ROOT_PHOTO_FOLDER_ID)
+    description = ''
 
+    for i in range(len(folder_names)-1):
+        description += "{0}. {1}\n".format(i, folder_names[i])
+        # Send decision embed
+    embed = discord.Embed(title='Sub-directories found:')
+    embed.description = description
+
+    # Takes discord message type
+    message = await ctx.send(embed=embed)
 # ================================================================================
 # Helper functions
 
@@ -151,14 +167,14 @@ async def folder_random(ctx, query):
 
     files = google_drive_feat.get_folder_contents(query)
 
-    
+
     if files == "No Folder":
         return await ctx.send("Folder {0} cannot be found".format(query))
     elif files == "Multiple Folders":
         return await ctx.send("Multiple folders with name {0}. Stopping request".format(query))
     elif len(files) == 0:
         return await ctx.send("No files in folder {0}". format(query))
-    
+
     random_index = random.randint(0, len(files) - 1)
     random_file_id = files[random_index]["id"]
 
@@ -214,12 +230,12 @@ async def photo_name(ctx, photo_name):
 
 async def photo_search(ctx, query):
     """
-    Helper function for command photo s query. Process request of a query. Returns an embed with options. 
+    Helper function for command photo s query. Process request of a query. Returns an embed with options.
     """
 
     #Check if current user has a pending request
     if (ctx.author.id in photo_requests):
-        # Found pending request. Deny 
+        # Found pending request. Deny
         return await ctx.send("Pending request, please chose or enter c to cancel")
 
     # Continue with query
