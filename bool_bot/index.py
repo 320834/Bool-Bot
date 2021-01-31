@@ -158,6 +158,9 @@ async def ls(ctx):
         # Send decision embed
     embed = discord.Embed(title='Sub-directories found:')
     embed.description = description
+
+    # Takes discord message type
+    message = await ctx.send(embed=embed)
     
 @bot.command(name="channel-list")
 async def channel_list(ctx):
@@ -205,9 +208,6 @@ async def channel(ctx, flag, query):
     else:
         return await ctx.send("Issues with your request. Are you sure you are entering the right flags")
 
-
-    # Takes discord message type
-    message = await ctx.send(embed=embed)
 # ================================================================================
 # Photo functions
 
