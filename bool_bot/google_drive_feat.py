@@ -189,28 +189,36 @@ def get_folder_contents(query):
 
 def get_files_search(query):
     """
-    Get the files that contains the query
+    Get the files that contains the query. Matches it with file name. 
 
     query : String - The query
 
-    return found_files : Array<Object()> - The number of found files
+    return found_files : Array<Object(id, name, webViewLink)> - The number of found files
     """
 
     creds = authenticate()
     service = build('drive', 'v3', credentials=creds)
 
     folder_ids, folder_names = get_folder_ids(ROOT_PHOTO_FOLDER_ID)
+    files = []
     found_files = []
 
     for id in folder_ids:
         page_token = None
-        response = service.files().list(q="name contains '{}' and '{}' in parents and trashed = false and (mimeType = 'image/jpeg' or mimeType = 'image/png' or mimeType = 'image/svg+xml')".format(query, id),
+        response = service.files().list(q="'{}' in parents and trashed = false and (mimeType = 'image/jpeg' or mimeType = 'image/png' or mimeType = 'image/svg+xml')".format(id),
                                         pageSize=10,
                                         spaces="drive",
-                                        fields='nextPageToken, files(id, name, webViewLink)',
+                                        fields='nextPageToken, files(id, name, webViewLink, description)',
                                         pageToken=page_token,
 
                                         ).execute()
-        found_files.extend(response["files"]) # simply add to the current list of files found in other folders
+        files.extend(response["files"]) # simply add to the current list of files found in other folders
+
+    for file in files:
+        if (
+            file["name"].rfind(query) != -1 or 
+            "description" in file and file["description"].rfind(query) != -1
+        ):
+            found_files.append(file)
 
     return found_files
