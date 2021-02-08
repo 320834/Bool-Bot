@@ -51,6 +51,8 @@ async def on_message(message):
     """
     Coroutine event. Invoked when user sends a message
     """
+    if len(bot_channels) == 0 and message.content[0] == "!" and message.content.find("!channel") == -1:
+        return await message.channel.send("There are no bot channels. Use !channel add channel_name")
 
     if (message.content.find("!channel") != -1):
         return await bot.process_commands(message)
@@ -237,7 +239,7 @@ async def photo_random(ctx, query):
     Send random photo based on name in query.
 
     Ex. !photo r justin
-    This command will return a random photo, where the file name begins with "justin"
+    This command will return a random photo, where the file name contains "justin" or the description contains "justin"
 
     """
     found_files = google_drive_feat.get_files_search(query)
@@ -246,10 +248,15 @@ async def photo_random(ctx, query):
         await ctx.send("No random photo found, probably because there are no photo/file names with the query you requested")
         return
 
+    
     random_index = random.randint(0, len(found_files) - 1)
     random_file_id = found_files[random_index]["id"]
+    random_file_description = "when the imposter is sus"
 
-    await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), "A random picture")
+    if "description" in found_files[random_index]:
+        random_file_description = found_files[random_index]['description']
+
+    await send_photo(ctx, random_file_id, "{0}.jpeg".format(random_file_id), random_file_description)
 
 
 
