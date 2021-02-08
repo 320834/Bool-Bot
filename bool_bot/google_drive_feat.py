@@ -187,7 +187,7 @@ def get_folder_contents(query):
     return response["files"]
 
 
-def get_files_search(query):
+def get_files_search(query, video=False):
     """
     Get the files that contains the query. Matches it with file name. 
 
@@ -202,10 +202,14 @@ def get_files_search(query):
     folder_ids, folder_names = get_folder_ids(ROOT_PHOTO_FOLDER_ID)
     files = []
     found_files = []
+    gd_query = "'{}' in parents and trashed = false and (mimeType = 'image/jpeg' or mimeType = 'image/png' or mimeType = 'image/svg+xml')"
+
+    if video:
+        gd_query = "'{}' in parents and trashed = false and mimeType = 'video/mp4'"
 
     for id in folder_ids:
         page_token = None
-        response = service.files().list(q="'{}' in parents and trashed = false and (mimeType = 'image/jpeg' or mimeType = 'image/png' or mimeType = 'image/svg+xml')".format(id),
+        response = service.files().list(q=gd_query.format(id),
                                         pageSize=10,
                                         spaces="drive",
                                         fields='nextPageToken, files(id, name, webViewLink, description)',
