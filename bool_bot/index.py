@@ -140,6 +140,19 @@ async def photo(ctx, search_option, query):
     else:
         await ctx.send("Something is wrong with your query, most likely that the option you provided is not valid")
 
+@bot.command(name="video")
+async def video(ctx, search_option, query):
+    """
+    Video commands. 
+
+    Flags
+
+    r or random - Searches for a video with query and return a random one. Ex. !video r jey
+    """
+    if search_option == "r" or search_option == "random":
+        await video_random(ctx, query)
+
+
 @bot.command(name="listrequests")
 async def list_requests(ctx):
     """
@@ -449,6 +462,48 @@ async def channel_remove(ctx, name):
         return await ctx.send("Sucessfully remove bot from {0} text channel".format(name))
 
     return await ctx.send("Cannot find channel {0}".format(name))
+
+# ================================================================================
+# Video functions
+async def video_random(ctx, query):
+    """
+    Gets a random video based off of query. Searches for video name and in its description
+
+    query : String - The video name or description.  
+    """
+    found_files = google_drive_feat.get_files_search(query, video=True)
+    
+    if len(found_files) == 0:
+        await ctx.send("No random video found, probably because there are no video names with the query you requested")
+        return
+
+    
+    random_index = random.randint(0, len(found_files) - 1)
+    random_file_id = found_files[random_index]["id"]
+    random_file_name = found_files[random_index]["name"]
+    
+    await send_video(ctx, random_file_id, random_file_name)
+
+async def send_video(ctx, file_id, file_name):
+    """
+    Works exactly the same way as send_photo, but without the embed since you can't embed videos with discord.py(I may be wrong)
+    """
+
+    video_name = google_drive_feat.download_photo(file_id, file_name) # maybe change the name of download_photo to download_file?
+
+    # Reads file from local storage
+    buffered = open(temp_dir + video_name, "rb")
+    file_video = discord.File(buffered, filename=video_name)
+    # insert embed code here, if possible
+
+    await ctx.send("Sending Video", file=file_video)
+
+    buffered.close()
+
+    # Deletes file from local storage
+    os.remove(temp_dir + video_name)
+
+    return
 
 def main():
     """
