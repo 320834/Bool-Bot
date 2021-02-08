@@ -142,6 +142,13 @@ async def photo(ctx, search_option, query):
 
 @bot.command(name="video")
 async def video(ctx, search_option, query):
+    """
+    Video commands. 
+
+    Flags
+
+    r or random - Searches for a video with query and return a random one. Ex. !video r jey
+    """
     if search_option == "r" or search_option == "random":
         await video_random(ctx, query)
 
@@ -459,6 +466,11 @@ async def channel_remove(ctx, name):
 # ================================================================================
 # Video functions
 async def video_random(ctx, query):
+    """
+    Gets a random video based off of query. Searches for video name and in its description
+
+    query : String - The video name or description.  
+    """
     found_files = google_drive_feat.get_files_search(query, video=True)
     
     if len(found_files) == 0:
