@@ -88,7 +88,7 @@ def get_file_id(filename):
 
     return response["files"]
 
-def download_photo(fileId, fileName):
+def download_file(fileId, fileName):
     """
     Download the photo to local directory.
 
