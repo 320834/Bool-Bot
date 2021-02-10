@@ -82,10 +82,10 @@ async def photo_name(ctx, photo_name):
         return
 
     file_id = obj[0]['id']
-    file_name = obj[0]['name']
+    file_name = obj[0]['id'] + ".jpeg"
     web_link = obj[0]["webViewLink"]
 
-    await send_photo(ctx, file_id, file_id, web_link)
+    await send_photo(ctx, file_id, file_name, web_link)
 
 async def photo_search(ctx, query):
     """
