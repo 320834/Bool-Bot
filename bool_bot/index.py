@@ -25,6 +25,7 @@ import video
 # ================================================================================
 # Temp directory
 temp_dir = "./bool_bot/files/"
+search_requests = {}
 
 # Bot is subclass of client. Any coroutines that defines an event should be usable under bot.
 bot = commands.Bot(command_prefix='!')
@@ -55,13 +56,13 @@ async def on_message(message):
         return await bot.process_commands(message)
 
     if message.channel.name in channel.bot_channels:
-
         result = await bot.process_commands(message)
 
         # Ensure no feedback loop.
         if message.author.name != bot.user.name and message.content[0] != "!":
             #Uncomment next line to test on_message
-            await photo.process_search_request(message)
+
+            await process_search_request(message)
             # await example_feat.send_mess(message)
 
 @bot.event
@@ -148,14 +149,19 @@ async def video_command(ctx, search_option, query):
     """
     if search_option == "r" or search_option == "random":
         await video.video_random(ctx, query)
+    elif search_option == "s" or search_option == "search":
+        await video.video_search(ctx, query)
+    else:
+        await ctx.send("Something is wrong with your query, most likely that the option you provided is not valid")
 
 
 @bot.command(name="listrequests")
 async def list_requests(ctx):
     """
     A development command to inspect the photo requests
+    Note: This can interfere with time out request deletion
     """
-    await photo.print_photo_requests()
+    print(search_requests)
 
 @bot.command(name="ls")
 async def ls(ctx):
@@ -220,6 +226,63 @@ async def channel_command(ctx, flag, query):
     else:
         return await ctx.send("Issues with your request. Are you sure you are entering the right flags")
 
+
+# Helper functions
+
+async def process_search_request(message):
+    """
+    Process search request of requesting user
+    """
+    user_id = message.author.id
+    res = message.content
+
+    if not (user_id in search_requests):
+        # Found nothing. No request for this user.
+        return
+
+    if bool(search_requests) and search_requests[user_id] != None and message.content == 'c':
+
+        message = search_requests[user_id]["message"]
+        # Delete query embed
+        await message.delete()
+
+        del search_requests[user_id]
+
+        return await message.channel.send("Cancelling Request")
+
+    if bool(search_requests) and search_requests[user_id] != None:
+
+        index = None
+        try:
+            index = int(res)
+        except ValueError:
+            return await message.channel.send("Please enter a number")
+
+        try:
+            file_id = search_requests[user_id]["files"][index]["id"]
+            file_name = search_requests[user_id]["files"][index]["name"]
+            description = search_requests[user_id]["files"][index]["webViewLink"]
+            request_type = search_requests[user_id]["type"]
+
+            message = search_requests[user_id]["message"]
+
+            # Delete query embed
+            await message.delete()
+
+            # Third argument takes file id as the file name. Due to privacy reasons, we won't upload the photo name to discord
+            if request_type == 'photo':
+                await photo.send_photo(message.channel, file_id, "{0}.jpeg".format(file_id), description)
+            elif request_type == 'video':
+                await video.send_video(message.channel, file_id, "{0}.mp4".format(file_id))
+            else:
+                await message.channel.send("Error: invalid request type")
+        except IndexError:
+            return await message.channel.send("Please enter a number in range of request")
+
+        # Remove user key from photo requests
+        del search_requests[user_id]
+
+        return
 
 def main():
     """

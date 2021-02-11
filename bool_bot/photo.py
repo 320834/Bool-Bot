@@ -9,7 +9,7 @@ import google_drive_feat
 import index
 
 # Global vars
-photo_requests = {}
+
 
 # ================================================================================
 # Photo functions
@@ -93,7 +93,7 @@ async def photo_search(ctx, query):
     """
 
     #Check if current user has a pending request
-    if (ctx.author.id in photo_requests):
+    if (ctx.author.id in index.search_requests):
         # Found pending request. Deny
         return await ctx.send("Pending request, please chose or enter c to cancel")
 
@@ -121,18 +121,19 @@ async def photo_search(ctx, query):
     # Store found_files and message in a dictionary.
     request = {
         "files": found_files,
-        "message": message
+        "message": message,
+        "type": 'photo'
     }
 
 
     # Push request to photo requests
-    photo_requests[ctx.author.id] = request
+    index.search_requests[ctx.author.id] = request
     try:
         await index.bot.wait_for('message',timeout=10.0)
     except asyncio.TimeoutError:
-        del photo_requests[ctx.author.id]
+        del index.search_requests[ctx.author.id]
         await message.delete()
-        await ctx.send('Request {} timed out'.format(query))
+        await ctx.send('Photo request {} timed out'.format(query))
 
 async def send_photo(ctx, file_id, file_name, description):
     """
@@ -160,56 +161,3 @@ async def send_photo(ctx, file_id, file_name, description):
     # Deletes file from local storage
     os.remove(google_drive_feat.temp_dir + photo_name)
     return
-
-async def process_search_request(message):
-    """
-    Process search request of requesting user
-    """
-    user_id = message.author.id
-    res = message.content
-
-
-    if not (user_id in photo_requests):
-        # Found nothing. No request for this user.
-        return
-
-    if bool(photo_requests) and photo_requests[user_id] != None and message.content == 'c':
-
-        message = photo_requests[user_id]["message"]
-        # Delete query embed
-        await message.delete()
-
-        del photo_requests[user_id]
-
-        return await message.channel.send("Cancelling Request")
-
-    if bool(photo_requests) and photo_requests[user_id] != None:
-
-        index = None
-        try:
-            index = int(res)
-        except ValueError:
-            return await message.channel.send("Please enter a number")
-
-        try:
-            file_id = photo_requests[user_id]["files"][index]["id"]
-            file_name = photo_requests[user_id]["files"][index]["name"]
-            description = photo_requests[user_id]["files"][index]["webViewLink"]
-
-            message = photo_requests[user_id]["message"]
-
-            # Delete query embed
-            await message.delete()
-
-            # Third argument takes file id as the file name. Due to privacy reasons, we won't upload the photo name to discord
-            await send_photo(message.channel, file_id, "{0}.jpeg".format(file_id), description)
-        except IndexError:
-            return await message.channel.send("Please enter a number in range of request")
-
-        # Remove user key from photo requests
-        del photo_requests[user_id]
-
-        return
-
-async def print_photo_requests():
-    print(photo_requests)
