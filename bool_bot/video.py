@@ -30,7 +30,7 @@ async def video_random(ctx, query):
 
 async def video_search(ctx, query):
     """
-    Helper function for command photo s query. Process request of a query. Returns an embed with options.
+    Helper function for command video s query. Process request of a query. Returns an embed with options.
     """
 
     #Check if current user has a pending request
