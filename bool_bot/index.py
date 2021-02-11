@@ -231,7 +231,7 @@ async def channel_command(ctx, flag, query):
 
 async def process_search_request(message):
     """
-    Process search request of requesting user
+    Process search request(photo or video) of requesting user
     """
     user_id = message.author.id
     res = message.content
