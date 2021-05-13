@@ -49,21 +49,24 @@ async def on_message(message):
     """
     Coroutine event. Invoked when user sends a message
     """
+
+    # Ensure no feedback loop from bot.
+    if message.author.name == bot.user.name:
+        #Return nothing so bot does not respond to it's own message
+        return
+
     if len(channel.bot_channels) == 0 and message.content[0] == "!" and message.content.find("!channel") == -1:
         return await message.channel.send("There are no bot channels. Use !channel add channel_name")
 
+    # Process only channel commands
     if (message.content.find("!channel") != -1):
         return await bot.process_commands(message)
 
     if message.channel.name in channel.bot_channels:
-        result = await bot.process_commands(message)
+        await bot.process_commands(message)
 
-        # Ensure no feedback loop.
-        if message.author.name != bot.user.name and message.content[0] != "!":
-            #Uncomment next line to test on_message
-
-            await process_search_request(message)
-            # await example_feat.send_mess(message)
+        await process_search_request(message)
+        # await example_feat.send_mess(message)
 
 @bot.event
 async def on_command_error(context, exception):
