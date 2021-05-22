@@ -42,9 +42,9 @@ async def test_download_photo(mocker):
     """
 
     # Test no files
-    spy = mocker.spy(google_drive_feat, 'download_photo')
+    spy = mocker.spy(google_drive_feat, 'download_file')
 
-    filename = google_drive_feat.download_photo("19ht1cJrUotOvJL58QemRlZNnmOzUn7GV", "kurt.png")
+    filename = google_drive_feat.download_file("19ht1cJrUotOvJL58QemRlZNnmOzUn7GV", "kurt.png")
 
     spy.assert_called_once_with("19ht1cJrUotOvJL58QemRlZNnmOzUn7GV", "kurt.png")
     assert filename == "kurt.png"

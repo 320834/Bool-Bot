@@ -7,7 +7,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
 import io
 
-from settings import ROOT_PHOTO_FOLDER_ID
+from bool_bot.settings import ROOT_PHOTO_FOLDER_ID
 
 # Documentation Links
 # In-depth documentation:
