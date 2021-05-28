@@ -8,25 +8,33 @@ import google_drive_feat
 import video
 import index
 
-FONTSIZE = 70
-
 # ====================================================
 # Video meme generator
 
 async def generate_meme_video(ctx, text, file_id, file_name):
     video_name = google_drive_feat.download_file(file_id, file_name)
 
-    fontsize = FONTSIZE
+    print(os.stat(google_drive_feat.temp_dir + video_name).st_size)
+
 
     video = VideoFileClip(google_drive_feat.temp_dir + video_name).set_position("bottom")
     video_width = video.size[0]
     video_height = video.size[1]
     time = video.duration
+    fontsize = video_width * 0.06
+    line_height = int(fontsize)
 
-    lines = determine_lines(text, video_width)
-    text_clip_array = create_text_clip(lines, fontsize, time)
+    lines = determine_lines(text, video_width, fontsize)
+    text_clip_array = create_text_clip(lines, fontsize, time, line_height)
 
-    array = np.empty((video_height + 100 * len(lines), video_width, 3))
+    text_height = video_height + 20 + line_height*len(lines)
+
+    if text_height - video_height > video_height/2:
+        os.remove(google_drive_feat.temp_dir + video_name)
+        return await ctx.send("Text size exceed more than size of video")
+
+    # Create text white background
+    array = np.empty((text_height, video_width, 3))
     array.fill(255)
     background = ImageClip(array).set_duration(video.duration)
 
@@ -45,8 +53,7 @@ async def send_local_video(ctx, video_name):
     # Reads file from local storage
     buffered = open(google_drive_feat.temp_dir + "temp.mp4", "rb")
     file_video = discord.File(buffered, filename=video_name)
-
-        
+    
     await ctx.send("Sending Meme Video", file=file_video)
 
     buffered.close()
@@ -57,10 +64,10 @@ async def send_local_video(ctx, video_name):
 
     return
 
-def determine_lines(text, width):
+def determine_lines(text, width, fontsize):
 
     last_line_index = 0
-    char_limit = math.floor(width/30)
+    char_limit = math.floor(width/fontsize) * 2
     buffer= 5
 
     lines = []
@@ -85,15 +92,15 @@ def determine_lines(text, width):
 
     return lines
 
-def create_text_clip(lines, fontsize, time):
+def create_text_clip(lines, fontsize, time, line_height):
 
     text_clip_arr = []
 
     line_num = 0
     for line in lines:
 
-        text_clip_arr.append(( TextClip(line, font="Impact", stroke_width=5.0, fontsize=fontsize, color= "black")
-            .set_position((20, 10 + 100*line_num))
+        text_clip_arr.append(( TextClip(line, font="Impact", stroke_width=2.0, fontsize=fontsize, color= "black")
+            .set_position((20, line_height * line_num))
             .set_duration(time)
             ))
 
