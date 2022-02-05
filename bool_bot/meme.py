@@ -16,9 +16,9 @@ async def generate_meme_video(ctx, text, file_id, file_name):
 
     video_bytes = os.stat(google_drive_feat.temp_dir + video_name).st_size
 
-    if video_bytes > 8000000:
+    if video_bytes > 8000000: # Over 8 MB
         os.remove(google_drive_feat.temp_dir + video_name)
-        return await ctx.send("Size of original video exceed 8 MB. Discord cannot ")
+        return await ctx.send("Size of original video exceed 8 MB. Discord cannot send it over 8 MB")
 
 
     video = VideoFileClip(google_drive_feat.temp_dir + video_name).set_position("bottom")
