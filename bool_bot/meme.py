@@ -14,34 +14,34 @@ import index
 async def generate_meme_video(ctx, text, file_id, file_name):
     video_name = google_drive_feat.download_file(file_id, file_name)
 
-    print(os.stat(google_drive_feat.temp_dir + video_name).st_size)
+    video_bytes = os.stat(google_drive_feat.temp_dir + video_name).st_size
+
+    if video_bytes > 8000000:
+        os.remove(google_drive_feat.temp_dir + video_name)
+        return await ctx.send("Size of original video exceed 8 MB. Discord cannot ")
 
 
     video = VideoFileClip(google_drive_feat.temp_dir + video_name).set_position("bottom")
     video_width = video.size[0]
     video_height = video.size[1]
     time = video.duration
-    fontsize = video_width * 0.06
+
+    FONT_OFFSET = 0.08 # Determines fontsize based on width of video
+    fontsize = video_width * FONT_OFFSET
     line_height = int(fontsize)
 
-    lines = determine_lines(text, video_width, fontsize)
-    text_clip_array = create_text_clip(lines, fontsize, time, line_height)
-
-    text_height = video_height + 20 + line_height*len(lines)
-
-    if text_height - video_height > video_height/2:
-        os.remove(google_drive_feat.temp_dir + video_name)
-        return await ctx.send("Text size exceed more than size of video")
+    # Create text clip
+    num_of_lines = determine_lines(text, video_width, fontsize)
+    text_clip_array = create_text_clip(num_of_lines, fontsize, time, line_height)
 
     # Create text white background
-    array = np.empty((text_height, video_width, 3))
-    array.fill(255)
-    background = ImageClip(array).set_duration(video.duration)
+    background = create_white_background_clip(video_height, video_width, line_height, num_of_lines, time)
 
     mes = await ctx.send("Processing Video. Depends on size of original video.")
 
+    # Merge white background and text clip
     result = CompositeVideoClip([background, video] + text_clip_array)
-    result.write_videofile(google_drive_feat.temp_dir + "temp.mp4", fps=20, logger=None)
+    result.write_videofile(google_drive_feat.temp_dir + "temp.mp4", threads=4, fps=20, logger=None)
 
     await send_local_video(ctx, video_name)
     await mes.delete()
@@ -65,9 +65,13 @@ async def send_local_video(ctx, video_name):
     return
 
 def determine_lines(text, width, fontsize):
+    """
+    When appending text to video. The video does not wrap text if the text is too long
+    We have to determine how many lines it takes to include the entire message
+    """
 
     last_line_index = 0
-    char_limit = math.floor(width/fontsize) * 2
+    char_limit = math.floor(width/fontsize) * 2 # Approximate number of characters per line
     buffer= 5
 
     lines = []
@@ -93,7 +97,9 @@ def determine_lines(text, width, fontsize):
     return lines
 
 def create_text_clip(lines, fontsize, time, line_height):
-
+    """
+    Create the text clip that appends to the video 
+    """
     text_clip_arr = []
 
     line_num = 0
@@ -107,3 +113,9 @@ def create_text_clip(lines, fontsize, time, line_height):
         line_num += 1
 
     return text_clip_arr
+
+def create_white_background_clip(video_height, video_width, line_height, num_of_lines, time):
+    text_height = video_height + 20 + line_height*len(num_of_lines)
+    array = np.empty((text_height, video_width, 3))
+    array.fill(255)
+    return ImageClip(array).set_duration(time)
