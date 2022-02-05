@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from settings import DISCORD_API_KEY
 from settings import ROOT_PHOTO_FOLDER_ID
 import asyncio
 
@@ -297,8 +296,8 @@ async def process_search_request(message):
 
         return
 
-def main():
+def main(discord_api_key : str):
     """
     The entry point for the bot. Called in __main__.py
     """
-    bot.run(DISCORD_API_KEY)
+    bot.run(discord_api_key)
