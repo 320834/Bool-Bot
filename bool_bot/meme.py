@@ -126,6 +126,6 @@ def create_white_background_clip(video_height, video_width, line_height, num_of_
     Y_OFFSET = 20
     
     text_height = video_height + Y_OFFSET + line_height*len(num_of_lines)
-    array = np.empty((text_height, video_width, 3))
-    array.fill(255)
+    array = np.empty((text_height, video_width, 3)) # For one frame
+    array.fill(255) # Fill it with #FFFFFFF
     return ImageClip(array).set_duration(time)
