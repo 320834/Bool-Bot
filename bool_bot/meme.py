@@ -1,12 +1,9 @@
 import discord
-import asyncio
 from moviepy.editor import *
 import numpy as np
 import math
 
 import google_drive_feat
-import video
-import index
 
 # ====================================================
 # Video meme generator
@@ -73,9 +70,12 @@ def determine_lines(text, width, fontsize):
 
     last_line_index = 0
     char_limit = math.floor(width/fontsize) * 2 # Approximate number of characters per line
+    # The threshold of the char_limit. 
     # char_limit is not perfect. Some characters will be longer in width than others. 
     # So we have this buffer to account for it
-    buffer= 5
+    # char_limit - buffer < character_limit < buffer
+    BUFFER= 4
+
 
     lines = []
 
@@ -88,11 +88,11 @@ def determine_lines(text, width, fontsize):
 
         if(
             char == ' ' and # Ensure the dividing char is not a character but a space
-            index >= char_limit-buffer and # Ensure characters in the beginning are in the first line 
-            index-last_line_index > 2*buffer and # Ensure current line is atleast 2 twice the length of the buffer
+            index >= char_limit-BUFFER and # Ensure characters in the beginning are in the first line 
+            index-last_line_index > 2*BUFFER and # Ensure current line is atleast 2 twice the length of the buffer
             (
-                index%char_limit >= char_limit - buffer or # Ensure character index falls between char_limit and the char_limit - buffer
-                index%char_limit <= buffer ) # These are the two core conditional.
+                index%char_limit >= char_limit - BUFFER or # Ensure character index falls between char_limit and the char_limit - buffer
+                index%char_limit <= BUFFER) # These are the two core conditional.
             ):
 
             lines.append(text[last_line_index: index+1])
@@ -109,11 +109,12 @@ def create_text_clip(lines, fontsize, time, line_height):
     Create the text clip that appends to the video 
     """
     text_clip_arr = []
+    Y_OFFSET = 20
 
     for line_num, line in enumerate(lines):
 
         text_clip_arr.append(( TextClip(line, font="Impact", stroke_width=2.0, fontsize=fontsize, color= "black")
-            .set_position((20, line_height * line_num))
+            .set_position((Y_OFFSET, line_height * line_num))
             .set_duration(time)
             ))
 
@@ -121,7 +122,10 @@ def create_text_clip(lines, fontsize, time, line_height):
     return text_clip_arr
 
 def create_white_background_clip(video_height, video_width, line_height, num_of_lines, time):
-    text_height = video_height + 20 + line_height*len(num_of_lines)
+    
+    Y_OFFSET = 20
+    
+    text_height = video_height + Y_OFFSET + line_height*len(num_of_lines)
     array = np.empty((text_height, video_width, 3))
     array.fill(255)
     return ImageClip(array).set_duration(time)
