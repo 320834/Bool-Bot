@@ -31,11 +31,11 @@ async def generate_meme_video(ctx, text, file_id, file_name):
     line_height = int(fontsize)
 
     # Create text clip
-    num_of_lines = determine_lines(text, video_width, fontsize)
-    text_clip_array = create_text_clip(num_of_lines, fontsize, time, line_height)
+    lines = determine_lines(text, video_width, fontsize)
+    text_clip_array = create_text_clip(lines, fontsize, time, line_height)
 
     # Create text white background
-    background = create_white_background_clip(video_height, video_width, line_height, num_of_lines, time)
+    background = create_white_background_clip(video_height, video_width, line_height, lines, time)
 
     mes = await ctx.send("Processing Video. Depends on size of original video.")
 
@@ -67,32 +67,40 @@ async def send_local_video(ctx, video_name):
 def determine_lines(text, width, fontsize):
     """
     When appending text to video. The video does not wrap text if the text is too long
-    We have to determine how many lines it takes to include the entire message
+    We have to determine how many lines it takes to include the entire message.
+    This function returns the lines of the array to be turned into a VideoClip
     """
 
     last_line_index = 0
     char_limit = math.floor(width/fontsize) * 2 # Approximate number of characters per line
+    # char_limit is not perfect. Some characters will be longer in width than others. 
+    # So we have this buffer to account for it
     buffer= 5
 
     lines = []
 
-    for i in range(len(text)):
+    """
+    Enumerate through each character and determine if character is part of current line
+    or the next line. If character is part of the newline, we save the substring of the characters
+    before the newline.
+    """
+    for index, char in enumerate(text):
 
         if(
-            text[i] == ' ' and 
-            i>=char_limit-buffer and 
-            i-last_line_index > 2*buffer and
+            char == ' ' and # Ensure the dividing char is not a character but a space
+            index >= char_limit-buffer and # Ensure characters in the beginning are in the first line 
+            index-last_line_index > 2*buffer and # Ensure current line is atleast 2 twice the length of the buffer
             (
-                i%char_limit >= char_limit - buffer or 
-                i%char_limit <= buffer )
+                index%char_limit >= char_limit - buffer or # Ensure character index falls between char_limit and the char_limit - buffer
+                index%char_limit <= buffer ) # These are the two core conditional.
             ):
 
-            lines.append(text[last_line_index: i+1])
+            lines.append(text[last_line_index: index+1])
 
-            last_line_index = i+1
+            last_line_index = index+1
 
-        if(i == len(text) - 1):
-            lines.append(text[last_line_index: i+1])
+
+    lines.append(text[last_line_index:])
 
     return lines
 
@@ -102,15 +110,13 @@ def create_text_clip(lines, fontsize, time, line_height):
     """
     text_clip_arr = []
 
-    line_num = 0
-    for line in lines:
+    for line_num, line in enumerate(lines):
 
         text_clip_arr.append(( TextClip(line, font="Impact", stroke_width=2.0, fontsize=fontsize, color= "black")
             .set_position((20, line_height * line_num))
             .set_duration(time)
             ))
 
-        line_num += 1
 
     return text_clip_arr
 
