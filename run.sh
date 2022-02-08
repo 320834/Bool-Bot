@@ -1,3 +1,3 @@
-pip3 install -r requirements.txt
-pip3 install -e .
-python3 bool_bot
+pip install -r requirements.txt
+pip install -e .
+python bool_bot

@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from settings import DISCORD_API_KEY
 from settings import ROOT_PHOTO_FOLDER_ID
 import asyncio
 
@@ -10,6 +9,7 @@ import google_drive_feat
 import photo
 import channel
 import video
+import meme
 
 # Use bot commands extension.
 # Tutorial: https://discordpy.readthedocs.io/en/latest/ext/commands/index.html
@@ -55,9 +55,10 @@ async def on_message(message):
         #Return nothing so bot does not respond to it's own message
         return
 
-    if len(channel.bot_channels) == 0 and message.content[0] == "!" and message.content.find("!channel") == -1:
-        return await message.channel.send("There are no bot channels. Use !channel add channel_name")
-
+    # if len(channel.bot_channels) == 0 and message.content[0] == "!" and message.content.find("!channel") == -1:
+    #     return await message.channel.send("There are no bot channels. Use !channel add channel_name")
+    await process_search_request(message)
+    return await bot.process_commands(message)
     # Process only channel commands
     if (message.content.find("!channel") != -1):
         return await bot.process_commands(message)
@@ -229,6 +230,12 @@ async def channel_command(ctx, flag, query):
     else:
         return await ctx.send("Issues with your request. Are you sure you are entering the right flags")
 
+@bot.command(name="meme")
+async def meme_command(ctx, type, search_query, text):
+    if(type == "video" or type == "v"):
+        # Uses video search with extra parameters
+        await video.video_search(ctx, search_query, meme=True, text=text)
+
 
 # Helper functions
 
@@ -277,6 +284,8 @@ async def process_search_request(message):
                 await photo.send_photo(message.channel, file_id, "{0}.jpeg".format(file_id), description)
             elif request_type == 'video':
                 await video.send_video(message.channel, file_id, "{0}.mp4".format(file_id))
+            elif request_type == 'video_meme':
+                await meme.generate_meme_video(message.channel, search_requests[user_id]["caption"], file_id, file_name)
             else:
                 await message.channel.send("Error: invalid request type")
         except IndexError:
@@ -287,8 +296,8 @@ async def process_search_request(message):
 
         return
 
-def main():
+def main(discord_api_key : str):
     """
     The entry point for the bot. Called in __main__.py
     """
-    bot.run(DISCORD_API_KEY)
+    bot.run(discord_api_key)

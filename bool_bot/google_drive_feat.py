@@ -1,4 +1,3 @@
-from __future__ import print_function
 import pickle
 import os.path
 from googleapiclient.discovery import build
@@ -7,7 +6,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
 import io
 
-from settings import ROOT_PHOTO_FOLDER_ID
+from bool_bot.settings import ROOT_PHOTO_FOLDER_ID
 
 # Documentation Links
 # In-depth documentation:

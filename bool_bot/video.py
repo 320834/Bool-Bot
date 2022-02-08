@@ -28,7 +28,7 @@ async def video_random(ctx, query):
     
     await send_video(ctx, random_file_id, random_file_name)
 
-async def video_search(ctx, query):
+async def video_search(ctx, query, meme=False, text=None):
     """
     Helper function for command video s query. Process request of a query. Returns an embed with options.
     """
@@ -66,6 +66,13 @@ async def video_search(ctx, query):
         "type": 'video'
     }
 
+    if meme:
+        request = {
+            "files": found_files,
+            "message": message,
+            "type": 'video_meme',
+            "caption": text
+        }
 
     # Push request to photo requests
     index.search_requests[ctx.author.id] = request
